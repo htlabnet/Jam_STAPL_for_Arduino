@@ -28,6 +28,9 @@
 #include "stm32f7xx_hal_sdram.h"
 
 
+#define SDRAM_START_ADDR                         (0xc0000000)
+#define SDRAM_SIZE                               (0x00800000) // 8MB
+
 #define SDRAM_MEMORY_WIDTH                       FMC_SDRAM_MEM_BUS_WIDTH_16
 #define SDCLOCK_PERIOD                           FMC_SDRAM_CLOCK_PERIOD_2
 #define SDRAM_TIMEOUT                            ((uint32_t)0xFFFF)
@@ -174,6 +177,8 @@ void setup()
   FMC_SDRAM_TimingTypeDef  SDRAM_Timing;
   FMC_SDRAM_CommandTypeDef command;
 
+  uint32_t * sdram_ptr = (uint32_t *)SDRAM_START_ADDR;
+
   Serial.begin(115200);
 
   while (!Serial) {
@@ -182,7 +187,6 @@ void setup()
   delay(1000);
  
 
-  // ===================== SDRAM TEST
   /*##-1- Configure the SDRAM device #########################################*/
   /* SDRAM device configuration */
   hsdram.Instance = FMC_SDRAM_DEVICE;
@@ -204,7 +208,7 @@ void setup()
   hsdram.Init.ReadBurst          = FMC_SDRAM_RBURST_ENABLE;
   hsdram.Init.ReadPipeDelay      = FMC_SDRAM_RPIPE_DELAY_0;
 
-  /* GPIO Settings */
+  /* FMC GPIO Settings */
   HAL_SDRAM_MspInit(&hsdram);
 
   /* Initialize the SDRAM controller */
@@ -221,12 +225,36 @@ void setup()
 
   /* SDRAM R/W Test */
   Serial.println("------------------------ SDRAM TEST ------------------------");
-  Serial.println("Address 0xC000_0000");
-  *((volatile uint32_t *)0xC0000000) = 0x12345678;
+  Serial.print("Address ");
+  Serial.println((uint32_t)sdram_ptr, HEX);
+  *sdram_ptr = 0x12345678;
   Serial.print("Write data = ");
-  Serial.println(*((volatile uint32_t *)0xC0000000), HEX);
+  Serial.println(0x12345678, HEX);
   Serial.print("Read data = ");
-  Serial.println(*((volatile uint32_t *)0xC0000000), HEX);
+  Serial.println(*sdram_ptr, HEX);
+
+  uint32_t sum1 = 0;
+  for (uint32_t i = 0; i < SDRAM_SIZE / 4; i++)
+  {
+    *(sdram_ptr + i) = i;
+    sum1 += i;
+  }
+  Serial.print("SUM1:");
+  Serial.println(sum1, HEX);
+
+  uint32_t sum2 = 0;
+  for (uint32_t i = 0; i < SDRAM_SIZE / 4; i++)
+  {
+    sum2 += *(sdram_ptr + i);
+  }
+  Serial.print("SUM2:");
+  Serial.println(sum2, HEX);
+
+  // zero fill
+  for (uint32_t i = 0; i < SDRAM_SIZE / 4; i++)
+  {
+    *(sdram_ptr + i) = 0;
+  }
   Serial.println("------------------------ SDRAM END ------------------------");
 
 
@@ -253,7 +281,6 @@ void setup()
 
   // Execute Program (Normal Operation)
   jbi_exec_program(jbc_file);
-
 
   // Execute Configure (MAX10 SRAM Write)
   //jbi_exec_configure(jbc_file);

@@ -5,7 +5,8 @@
 #include <Arduino.h>
 #include "jbiarduino.h"
 
-#define USE_STATIC_MEMORY (8 * 1024)  // SDRAM max size = 8MB
+#define USE_STATIC_MEMORY   (8 * 1024)    // Memory size in KB. SDRAM max size is 8MB.
+#define STATIC_MEMORY_ADDR  (0xc0000000)  // SDRAM Address
 
 #if defined(USE_STATIC_MEMORY)
   #define N_STATIC_MEMORY_KBYTES ((unsigned int) USE_STATIC_MEMORY)

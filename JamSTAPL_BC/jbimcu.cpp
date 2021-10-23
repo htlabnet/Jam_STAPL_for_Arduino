@@ -4,7 +4,8 @@
 
 
 #if defined(USE_STATIC_MEMORY)
-  unsigned char static_memory_heap[N_STATIC_MEMORY_BYTES]__attribute__((section(".sdram"))) = { 0 };
+  //unsigned char static_memory_heap[N_STATIC_MEMORY_BYTES]__attribute__((section(".sdram"))) = { 0 };
+  unsigned char* static_memory_heap = (unsigned char*)STATIC_MEMORY_ADDR; // SDRAM Address
 #endif /* USE_STATIC_MEMORY */
 
 #if defined(USE_STATIC_MEMORY) || defined(MEM_TRACKER)
